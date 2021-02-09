@@ -51,6 +51,9 @@ func (ce *CodeExecution) Exec(w http.ResponseWriter, r *http.Request) error {
 	// Creates new sandbox
 	sb, err := sandbox.Create(ce.log, ws, codexSubmission.Language, plainTextSourceCode)
 	if err != nil {
+		if errors.Cause(err) == sandbox.ErrUnknownProgrammingLanguage {
+			return web.NewRequestError(err, http.StatusBadRequest)
+		}
 		return errors.Wrap(err, "Exec: Could not create sandbox")
 	}
 
