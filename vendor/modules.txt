@@ -1,0 +1,12 @@
+# github.com/ardanlabs/conf v1.3.4
+## explicit
+github.com/ardanlabs/conf
+# github.com/go-chi/chi v1.5.1
+## explicit
+github.com/go-chi/chi
+# github.com/google/uuid v1.2.0
+## explicit
+github.com/google/uuid
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
