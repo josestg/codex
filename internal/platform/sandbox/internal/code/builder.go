@@ -1,23 +1,17 @@
 package code
 
 import (
-	"errors"
-
 	"github.com/josestg/codex/internal/platform/sandbox/internal/engine"
 )
 
-var (
-	ErrUnknownProgrammingLanguage = errors.New("UNKNOWN PROGRAMMING LANGUAGE")
-)
-
 // GetBuilder returns engine builder based-on programming language.
-func GetBuilder(language string) (engine.Builder, error) {
+func GetBuilder(language string) engine.Builder {
 	switch language {
 	default:
-		return nil, ErrUnknownProgrammingLanguage
+		return nil
 	case "golang":
-		return new(Golang), nil
+		return new(Golang)
 	case "javascript":
-		return new(JavaScript), nil
+		return new(JavaScript)
 	}
 }

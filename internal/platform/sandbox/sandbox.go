@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	ErrTimeLimitExceeded = errors.New("TIME LIMIT EXCEEDED")
+	ErrTimeLimitExceeded          = errors.New("TIME LIMIT EXCEEDED")
+	ErrUnknownProgrammingLanguage = errors.New("UNKNOWN PROGRAMMING LANGUAGE")
 )
 
 // Sandbox knows how to run User's code remotely.
@@ -28,9 +29,9 @@ type Sandbox struct {
 
 // Create creates a new sandbox.
 func Create(logger *log.Logger, wm engine.WorkdirManager, language string, sourceCode []byte) (*Sandbox, error) {
-	builder, err := code.GetBuilder(language)
-	if err != nil {
-		return nil, errors.Wrap(err, "Sandbox: Create: Could not get executable builder.")
+	builder := code.GetBuilder(language)
+	if builder == nil {
+		return nil, ErrUnknownProgrammingLanguage
 	}
 
 	executable, err := builder.Build(wm, sourceCode)

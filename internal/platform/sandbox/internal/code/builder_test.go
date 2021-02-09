@@ -11,30 +11,26 @@ import (
 func TestGetBuilder(t *testing.T) {
 	type funcEval func(b engine.Builder) bool
 	tc := []struct {
-		name    string
-		eval    funcEval
-		wantErr bool
+		name string
+		eval funcEval
 	}{
 		{
-			name:    "golang",
-			wantErr: false,
+			name: "golang",
 			eval: func(b engine.Builder) bool {
 				_, ok := b.(*code.Golang)
 				return ok
 			},
 		},
 		{
-			name:    "javascript",
-			wantErr: false,
+			name: "javascript",
 			eval: func(b engine.Builder) bool {
 				_, ok := b.(*code.JavaScript)
 				return ok
 			},
 		}, {
-			name:    "unknown",
-			wantErr: true,
+			name: "unknown",
 			eval: func(b engine.Builder) bool {
-				return true
+				return b == nil
 			},
 		},
 	}
@@ -42,22 +38,9 @@ func TestGetBuilder(t *testing.T) {
 	for _, c := range tc {
 		name := fmt.Sprintf("Get %s builder", c.name)
 		t.Run(name, func(tt *testing.T) {
-			builder, err := code.GetBuilder(c.name)
-			if c.wantErr {
-				if err != code.ErrUnknownProgrammingLanguage {
-					t.Errorf("Expected error %v nil; got %v", code.ErrUnknownProgrammingLanguage, err)
-				}
-				if builder != nil {
-					t.Errorf("Expected builder nil; got %v", builder)
-				}
-			} else {
-				if err != nil {
-					t.Errorf("Expected error nil; got %v", err)
-				}
-
-				if !c.eval(builder) {
-					t.Errorf("Expected %s builder but got %v", c.name, builder)
-				}
+			builder := code.GetBuilder(c.name)
+			if !c.eval(builder) {
+				t.Errorf("Expected %s builder but got %v", c.name, builder)
 			}
 		})
 	}
