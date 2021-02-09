@@ -13,5 +13,8 @@ func GetBuilder(language string) engine.Builder {
 		return new(Golang)
 	case "javascript":
 		return new(JavaScript)
+	case "python":
+		return new(Python)
+
 	}
 }
