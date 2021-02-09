@@ -18,7 +18,13 @@ import (
 
 var (
 	ErrTimeLimitExceeded          = errors.New("TIME LIMIT EXCEEDED")
+	ErrInternalCodexError         = errors.New("INTERNAL CODEX ERROR")
 	ErrUnknownProgrammingLanguage = errors.New("UNKNOWN PROGRAMMING LANGUAGE")
+)
+
+const (
+	StatusPassed = "PASSED"
+	StatusFailed = "FAILED"
 )
 
 // Sandbox knows how to run User's code remotely.
@@ -48,7 +54,7 @@ func (s *Sandbox) RunTest(sandboxStdin *model.SandboxStdin, timeLimit time.Durat
 
 	testResult := model.SandboxStdout{
 		TestCaseID: sandboxStdin.ID,
-		Status:     "FAILED",
+		Status:     StatusFailed,
 		Error:      nil,
 		Log:        nil,
 	}
@@ -61,7 +67,8 @@ func (s *Sandbox) RunTest(sandboxStdin *model.SandboxStdin, timeLimit time.Durat
 	// Writes test case input into process stdin.
 	stdinWriter, err := process.StdinPipe()
 	if err != nil {
-		testResult.Error = errors.Wrap(err, "Sandbox: run: Could not create stdin writer.")
+		s.logger.Printf("RunTest: Could not create stdin writer. Err: %v", err)
+		testResult.Error = ErrInternalCodexError
 		return &testResult
 	}
 	go func() {
@@ -74,7 +81,8 @@ func (s *Sandbox) RunTest(sandboxStdin *model.SandboxStdin, timeLimit time.Durat
 	stderrReader, err := process.StderrPipe()
 
 	if err != nil {
-		testResult.Error = errors.Wrap(err, "Sandbox: run: Could not create stderr reader.")
+		s.logger.Printf("RunTest: Could not create stderr reader. Err: %v", err)
+		testResult.Error = ErrInternalCodexError
 		return &testResult
 	}
 	go func() {
@@ -86,7 +94,8 @@ func (s *Sandbox) RunTest(sandboxStdin *model.SandboxStdin, timeLimit time.Durat
 	var stdout strings.Builder
 	stdoutReader, err := process.StdoutPipe()
 	if err != nil {
-		testResult.Error = errors.Wrap(err, "Sandbox: run: Could not create stdout reader.")
+		s.logger.Printf("RunTest: Could not create stdout reader. Err: %v", err)
+		testResult.Error = ErrInternalCodexError
 		return &testResult
 	}
 	go func() {
@@ -104,7 +113,7 @@ func (s *Sandbox) RunTest(sandboxStdin *model.SandboxStdin, timeLimit time.Durat
 	processStdout := stdout.String()
 
 	if sandboxStdin.ExpectedOutput == processStdout {
-		testResult.Status = "PASSED"
+		testResult.Status = StatusPassed
 	}
 
 	if !sandboxStdin.IsPrivate {
@@ -151,15 +160,8 @@ func (s *Sandbox) RunTestBulk(stdinList []*model.SandboxStdin, timeLimit time.Du
 		}
 
 		if runTestResult.Error != nil {
-			if errors.Cause(runTestResult.Error) == ErrTimeLimitExceeded {
-				sandboxTestStdout.Error = &model.SandboxTestStdoutError{
-					Message: runTestResult.Error.Error(),
-				}
-			} else {
-				s.logger.Println(runTestResult.Error)
-				sandboxTestStdout.Error = &model.SandboxTestStdoutError{
-					Message: "INTERNAL CODEX ERROR",
-				}
+			sandboxTestStdout.Error = &model.SandboxTestStdoutError{
+				Message: runTestResult.Error.Error(),
 			}
 		}
 
