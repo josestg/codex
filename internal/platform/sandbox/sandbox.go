@@ -19,6 +19,7 @@ import (
 var (
 	ErrTimeLimitExceeded          = errors.New("TIME LIMIT EXCEEDED")
 	ErrInternalCodexError         = errors.New("INTERNAL CODEX ERROR")
+	ErrProcessCannotBeExecuted    = errors.New("PROCESS CANNOT BE EXECUTED")
 	ErrUnknownProgrammingLanguage = errors.New("UNKNOWN PROGRAMMING LANGUAGE")
 )
 
@@ -105,7 +106,15 @@ func (s *Sandbox) RunTest(sandboxStdin *model.SandboxStdin, timeLimit time.Durat
 
 	// Runs a timed process.
 	if err := process.Run(); err != nil {
-		testResult.Error = ErrTimeLimitExceeded
+		switch process.ProcessState.ExitCode() {
+		case -1: // -1 means terminated by signal.
+			testResult.Error = ErrTimeLimitExceeded
+		case 1: // 1 means process cannot executed.
+			testResult.Error = ErrProcessCannotBeExecuted
+		default:
+			testResult.Error = ErrInternalCodexError
+			s.logger.Printf("process.Run error: %v", err)
+		}
 		return &testResult
 	}
 
