@@ -5,13 +5,13 @@ CODEX or Remote Code Execution. (_Work in process_)
 ## Usage
 
 ```bazaar
-git clone https://github.com/josestg/codex.git
+git clone https://github.com/talkwithcode/codex.git
 
 cd codex
 
 make codex-api 
 # or
-go run un app/codex-api/main.go
+go run app/codex-api/main.go
 ```
 
 CODEX API listening at http://localhost:8000
